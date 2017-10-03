@@ -1,11 +1,10 @@
 #include <opencv2/opencv.hpp>
-#include <opencv2/core/opengl.hpp>
 #include <thread>
 #include <string>
-#include <atomic>
 #include <chrono>
 #include <mutex>
-#include <boost/format.hpp>
+#include <iomanip>
+#include <sstream>
 #include "cvlibs.h"
 
 using namespace cv;
@@ -24,7 +23,6 @@ bool is_ready = false;
 mutex mtx;
 
 //˜A”ÔŠÖŒW
-string sequence = "jpg/img%03d.jpg";
 const int n_frames = 32;
 int i_current = -1;
 int i_last = -2;
@@ -54,7 +52,7 @@ int main(void)
 
 		auto diff = system_clock::now() - start;
 		long long ms = duration_cast<milliseconds>(diff).count();
-		i_current = ms / (1000.0 / fps);
+		i_current = int(ms / (1000.0 / fps));
 
 		if (n_frames <= i_current) break;
 		
@@ -95,7 +93,11 @@ void load(void)
 			}
 
 			int i_last_pp = ++i_last;
-			string fname = (boost::format(sequence) % i_last_pp ).str();
+
+			//"jpg/img%03d.jpg"
+			std::ostringstream oss;
+			oss << "jpg/img" << setfill('0') << setw(3) << i_last_pp << ".jpg";
+			string fname = oss.str();
 
 			mtx.lock();
 			cout << this_thread::get_id() << "; i_last_pp = " << i_last_pp << endl;
